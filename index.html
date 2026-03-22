@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>EcoMoldova</title>
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <!-- CSS personalizat -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="logo"><h1><i class="fas fa-seedling"></i> EcoMoldova</h1></div>
+        <div class="badge"><i class="fas fa-leaf"></i> platformă verde | acțiune locală</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+        <button class="tab-btn" data-tab="recycling"><i class="fas fa-recycle"></i> Hartă reciclare</button>
+        <button class="tab-btn" data-tab="carbon"><i class="fas fa-cloud-sun"></i> Amprentă CO₂</button>
+        <button class="tab-btn" data-tab="impact"><i class="fas fa-chart-simple"></i> Eco Impact</button>
+        <button class="tab-btn" data-tab="quiz"><i class="fas fa-question-circle"></i> Test eco</button>
+        <button class="tab-btn" data-tab="challenges"><i class="fas fa-tasks"></i> Provocări verzi</button>
+        <button class="tab-btn" data-tab="inspiration"><i class="fas fa-lightbulb"></i> Inspirație</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPane" class="tab-pane active-pane">
+        <div class="stats-grid">
+            <div class="stat-card-modern"><i class="fas fa-trash-alt fa-2x"></i><div class="stat-number" id="totalPointsCount">0</div><div>puncte colectare</div></div>
+            <div class="stat-card-modern"><i class="fas fa-tree fa-2x"></i><div class="stat-number" id="treesSaved">112</div><div>copaci salvați</div></div>
+            <div class="stat-card-modern"><i class="fas fa-trophy fa-2x"></i><div class="stat-number" id="challengeScore">0</div><div>provocări finalizate</div></div>
+            <div class="stat-card-modern"><i class="fas fa-chart-simple fa-2x"></i><div class="stat-number" id="co2ReducedStat">2.8</div><div>tone CO₂ reduse</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-lightbulb"></i> Scorul tău ecologic</div>
+            <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                <div class="circular-progress">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="54" fill="none" stroke="#e0ecd9" stroke-width="8"/>
+                        <circle cx="60" cy="60" r="54" fill="none" stroke="#2b6e3c" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="339.292" id="progressCircle"/>
+                    </svg>
+                    <div class="progress-text" id="ecoScorePercent">0%</div>
+                </div>
+                <div style="flex:1"><div class="progress-bar"><div id="ecoProgressFill" class="progress-fill"></div></div><div style="margin-top:8px;">Completează provocările pentru a-ți crește scorul!</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-simple"></i> Top acțiuni eco în Moldova</div>
+            <ul><li><i class="fas fa-check-circle" style="color:#4c9a2a;"></i> Adaugă puncte de reciclare pe hartă</li><li><i class="fas fa-check-circle" style="color:#4c9a2a;"></i> Finalizează provocările verzi</li><li><i class="fas fa-check-circle" style="color:#4c9a2a;"></i> Calculează-ți amprenta CO₂</li><li><i class="fas fa-check-circle" style="color:#4c9a2a;"></i> Folosește Eco Impact Calculator</li></ul>
+        </div>
+    </div>
+
+    <!-- Hartă reciclare -->
+    <div id="recyclingPane" class="tab-pane">
+        <div class="recycling-layout">
+            <div class="map-col"><div id="map"></div><div style="margin-top:12px; display:flex; gap:12px;"><button id="locateMe" class="btn-primary" style="background:#3f784c; width:auto;"><i class="fas fa-location-dot"></i> Localizează-mă</button><div id="locationStatus" style="background:#eef2e6; border-radius:40px; padding:6px 16px;">📍 așteaptă locație</div></div></div>
+            <div class="sidebar-col">
+                <div class="card"><h3><i class="fas fa-filter"></i> Filtru tip deșeu</h3><select id="filterType"><option value="all">Toate</option><option value="plastic">Plastic</option><option value="sticla">Sticlă</option><option value="hartie">Hârtie</option><option value="metal">Metal</option><option value="electrocasnice">Electrocasnice</option><option value="textile">Textile</option></select></div>
+                <div class="card"><h3><i class="fas fa-location-dot"></i> Cele mai apropiate puncte</h3><div id="nearestPointsList" class="points-list">Așteaptă locația...</div></div>
+                <div class="card"><h4><i class="fas fa-plus-circle"></i> Adaugă punct nou</h4><input type="text" id="newPointName" placeholder="Nume punct"><input type="text" id="newPointAddress" placeholder="Adresă"><select id="newPointType"><option value="plastic">Plastic</option><option value="sticla">Sticlă</option><option value="hartie">Hârtie</option><option value="metal">Metal</option><option value="electrocasnice">Electrocasnice</option><option value="textile">Textile</option></select><div style="display:flex; gap:6px;"><input type="text" id="newPointLat" placeholder="Lat (click pe hartă)" readonly><input type="text" id="newPointLng" placeholder="Lng" readonly></div><button id="addPointBtn" class="btn-primary"><i class="fas fa-save"></i> Salvează punct</button><div class="eco-tip" style="font-size:0.7rem; margin-top:8px;">* Click pe hartă pentru coordonate</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amprentă carbon -->
+    <div id="carbonPane" class="tab-pane">
+        <div class="card"><div class="card-title"><i class="fas fa-car"></i> Calculator amprentă CO₂ (lunar)</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;"><div><label>🚗 km mașină:</label><input type="number" id="carKm" value="300"></div><div><label>✈️ ore zbor:</label><input type="number" id="flightHours" value="0"></div><div><label>💡 kWh electricitate:</label><input type="number" id="electricityKwh" value="200"></div><div><label>🗑️ kg deșeuri nereciclate:</label><input type="number" id="wasteKg" value="15"></div></div><button id="calcCarbon" class="btn-primary" style="width:auto;"><i class="fas fa-calculator"></i> Calculează</button><div id="carbonResult" class="result-box">Așteaptă date...</div></div>
+    </div>
+
+    <!-- Eco Impact Calculator -->
+    <div id="impactPane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-simple"></i> Eco Impact Calculator</div>
+            <p class="eco-tip" style="margin-bottom:20px;">Vezi cât de mult poți contribui la protejarea mediului schimbând câteva obiceiuri zilnice. Măsoară economiile tale în CO₂, plastic și copaci!</p>
+            
+            <div class="impact-slider">
+                <label>🥤 Sticle de plastic de unică folosință pe săptămână <span id="plasticBottlesValue" class="impact-value">0</span></label>
+                <input type="range" id="plasticBottles" min="0" max="30" step="1" value="10">
+            </div>
+            <div class="impact-slider">
+                <label>🛍️ Pungi de plastic pe săptămână <span id="plasticBagsValue" class="impact-value">0</span></label>
+                <input type="range" id="plasticBags" min="0" max="30" step="1" value="8">
+            </div>
+            <div class="impact-slider">
+                <label>☕ Pahare/cafea de unică folosință pe săptămână <span id="disposableCupsValue" class="impact-value">0</span></label>
+                <input type="range" id="disposableCups" min="0" max="20" step="1" value="5">
+            </div>
+            <div class="impact-slider">
+                <label>🍽️ Tacâmuri/farfurii de plastic pe lună <span id="plasticCutleryValue" class="impact-value">0</span></label>
+                <input type="range" id="plasticCutlery" min="0" max="50" step="1" value="15">
+            </div>
+
+            <div class="impact-stats">
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                    <div><i class="fas fa-cloud fa-2x" style="color:#4c9a2a;"></i><br><span id="co2Saved" class="impact-stat-number">0</span><br>kg CO₂ economisit/an</div>
+                    <div><i class="fas fa-trash-alt fa-2x" style="color:#4c9a2a;"></i><br><span id="plasticSaved" class="impact-stat-number">0</span><br>kg plastic redus/an</div>
+                    <div><i class="fas fa-tree fa-2x" style="color:#4c9a2a;"></i><br><span id="treesEquivalent" class="impact-stat-number">0</span><br>copaci echivalenți</div>
+                </div>
+                <div style="margin-top: 16px; font-size:0.9rem;">🌍 Dacă toți cetățenii responsabili ar face acești pași, impactul ar fi uriaș!</div>
+            </div>
+            <div class="eco-tip" style="margin-top: 16px; text-align:center;"><i class="fas fa-lightbulb"></i> Sfat: înlocuiește obiectele de unică folosință cu alternative reutilizabile – câștigi pe termen lung și protejezi planeta!</div>
+        </div>
+    </div>
+
+    <!-- Test ecologic -->
+    <div id="quizPane" class="tab-pane">
+        <div class="card"><div class="card-title"><i class="fas fa-brain"></i> Test ecologic avansat (10 întrebări)</div><div id="quizContainer"></div><button id="submitQuiz" class="btn-primary"><i class="fas fa-star"></i> Verifică răspunsurile</button><div id="quizScore" class="result-box"></div></div>
+    </div>
+
+    <!-- Provocări verzi -->
+    <div id="challengesPane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-tasks"></i> Provocări pentru o viață mai verde</div>
+            <div id="challengesList" class="challenges-grid"></div>
+            <div class="progress-summary">
+                <div><i class="fas fa-leaf"></i> <span id="totalPointsEarned">0</span> / <span id="maxPointsAvailable">0</span> puncte eco acumulate</div>
+                <button id="resetChallengesBtn" class="reset-challenges"><i class="fas fa-undo-alt"></i> Resetează provocările</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspirație verde -->
+    <div id="inspirationPane" class="tab-pane">
+        <div class="inspiration-card">
+            <i class="fas fa-seedling fa-3x" style="color:#4c9a2a;"></i>
+            <h3>🌿 Inspirație verde din Moldova</h3>
+            <div id="inspirationText" class="inspiration-text">Încărcare...</div>
+            <div class="inspiration-buttons">
+                <button id="prevInspiration" class="btn-primary" style="width:auto; padding:8px 20px;"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button id="nextInspiration" class="btn-primary" style="width:auto; padding:8px 20px;">Următor <i class="fas fa-arrow-right"></i></button>
+                <button id="randomInspiration" class="btn-primary" style="width:auto; background:#5a8f4c;"><i class="fas fa-random"></i> Aleator</button>
+            </div>
+            <div style="margin-top: 20px; font-size:0.8rem;"><i class="fas fa-plus-circle"></i> <a href="#" id="addInspirationBtn" style="color:#2b6e3c;">Adaugă propria ta inspirație</a> (se salvează în browser)</div>
+            <div id="addInspirationForm" style="display:none; margin-top:16px;">
+                <textarea id="newInspirationText" rows="2" placeholder="Scrie o idee, un proiect sau un fapt ecologic din Moldova..." style="width:100%; border-radius:24px; padding:12px;"></textarea>
+                <button id="saveInspirationBtn" class="btn-primary" style="margin-top:8px;">Salvează inspirația</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>© 2025 EcoMoldova 4.0 – date stocate în browser • contribuie la un viitor mai curat</footer>
+</div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
